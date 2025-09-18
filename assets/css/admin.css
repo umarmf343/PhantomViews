@@ -86,3 +86,53 @@ flex: 1;
 font-weight: 600;
 margin-bottom: 1rem;
 }
+
+.phantomviews-tour-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.phantomviews-tour-settings-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.phantomviews-settings-panel .components-panel__body {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.phantomviews-repeatable-fieldset {
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  padding: 1rem;
+  border-radius: 10px;
+  margin-top: 1rem;
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.phantomviews-repeatable-fieldset legend {
+  font-weight: 600;
+  padding: 0 0.5rem;
+}
+
+.phantomviews-repeatable-fieldset .components-text-control {
+  margin-bottom: 0.75rem;
+}
+
+.phantomviews-empty-note {
+  margin-top: 1rem;
+  font-style: italic;
+  color: #475569;
+}
+
+.phantomviews-color-input {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  height: 42px;
+  padding: 0;
+  cursor: pointer;
+}

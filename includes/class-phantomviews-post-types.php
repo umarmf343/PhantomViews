@@ -98,14 +98,50 @@ __( 'PhantomViews Tour Builder', 'phantomviews' ),
  */
 public function render_tour_meta_box( $post ) {
 wp_nonce_field( 'phantomviews_save_tour', 'phantomviews_nonce' );
-$scenes = get_post_meta( $post->ID, '_phantomviews_scenes', true );
-if ( ! is_array( $scenes ) ) {
-$scenes = [];
-}
-$scene_limit = apply_filters( 'phantomviews_free_scene_limit', 3 );
-?>
-<div id="phantomviews-tour-root" data-post-id="<?php echo esc_attr( $post->ID ); ?>" data-scenes='<?php echo esc_attr( wp_json_encode( $scenes ) ); ?>' data-scene-limit="<?php echo esc_attr( $scene_limit ); ?>"></div>
-<?php
+        $scenes = get_post_meta( $post->ID, '_phantomviews_scenes', true );
+        if ( ! is_array( $scenes ) ) {
+            $scenes = [];
+        }
+
+        $branding = get_post_meta( $post->ID, '_phantomviews_branding', true );
+        if ( ! is_array( $branding ) ) {
+            $branding = [];
+        }
+
+        $theme = get_post_meta( $post->ID, '_phantomviews_theme', true );
+        if ( ! is_array( $theme ) ) {
+            $theme = [];
+        }
+
+        $expiration = get_post_meta( $post->ID, '_phantomviews_expiration', true );
+        if ( ! is_array( $expiration ) ) {
+            $expiration = [];
+        }
+
+        $floor_plans = get_post_meta( $post->ID, '_phantomviews_floor_plans', true );
+        if ( ! is_array( $floor_plans ) ) {
+            $floor_plans = [];
+        }
+
+        $audio_tracks = get_post_meta( $post->ID, '_phantomviews_audio_tracks', true );
+        if ( ! is_array( $audio_tracks ) ) {
+            $audio_tracks = [];
+        }
+
+        $scene_limit = apply_filters( 'phantomviews_free_scene_limit', 3 );
+        ?>
+        <div
+            id="phantomviews-tour-root"
+            data-post-id="<?php echo esc_attr( $post->ID ); ?>"
+            data-scenes='<?php echo esc_attr( wp_json_encode( $scenes ) ); ?>'
+            data-branding='<?php echo esc_attr( wp_json_encode( $branding ) ); ?>'
+            data-theme='<?php echo esc_attr( wp_json_encode( $theme ) ); ?>'
+            data-expiration='<?php echo esc_attr( wp_json_encode( $expiration ) ); ?>'
+            data-floor-plans='<?php echo esc_attr( wp_json_encode( $floor_plans ) ); ?>'
+            data-audio-tracks='<?php echo esc_attr( wp_json_encode( $audio_tracks ) ); ?>'
+            data-scene-limit="<?php echo esc_attr( $scene_limit ); ?>"
+        ></div>
+        <?php
 }
 
 /**

@@ -21,6 +21,7 @@ use function do_action;
 use function esc_attr;
 use function esc_html_e;
 use function flush_rewrite_rules;
+use function get_post_meta;
 use function load_plugin_textdomain;
 use function plugin_basename;
 use function register_activation_hook;
@@ -192,19 +193,66 @@ if ( ! $tour_id ) {
 return '';
 }
 
-$license_state = $this->license_manager ? $this->license_manager->get_license_state() : 'free';
-$scenes        = $this->hotspots ? $this->hotspots->get_tour_scenes( $tour_id ) : [];
+        $license_state = $this->license_manager ? $this->license_manager->get_license_state() : 'free';
+        $scenes        = $this->hotspots ? $this->hotspots->get_tour_scenes( $tour_id ) : [];
 
-ob_start();
-?>
-<div class="phantomviews-tour" data-tour-id="<?php echo esc_attr( $tour_id ); ?>" data-license-state="<?php echo esc_attr( $license_state ); ?>" style="width: <?php echo esc_attr( $atts['width'] ); ?>; height: <?php echo esc_attr( $atts['height'] ); ?>;">
-<div class="phantomviews-viewer" aria-live="polite"></div>
-<noscript><?php esc_html_e( 'PhantomViews requires JavaScript to display the tour.', 'phantomviews' ); ?></noscript>
-</div>
-<script type="application/json" class="phantomviews-data" data-tour-id="<?php echo esc_attr( $tour_id ); ?>"><?php echo wp_json_encode( $scenes ); ?></script>
-<?php
+        $branding    = get_post_meta( $tour_id, '_phantomviews_branding', true );
+        $theme       = get_post_meta( $tour_id, '_phantomviews_theme', true );
+        $expiration  = get_post_meta( $tour_id, '_phantomviews_expiration', true );
+        $floor_plans = get_post_meta( $tour_id, '_phantomviews_floor_plans', true );
+        $audio       = get_post_meta( $tour_id, '_phantomviews_audio_tracks', true );
 
-return ob_get_clean();
+        if ( ! is_array( $branding ) ) {
+            $branding = [];
+        }
+
+        if ( ! is_array( $theme ) ) {
+            $theme = [];
+        }
+
+        if ( ! is_array( $expiration ) ) {
+            $expiration = [];
+        }
+
+        if ( ! is_array( $floor_plans ) ) {
+            $floor_plans = [];
+        }
+
+        if ( ! is_array( $audio ) ) {
+            $audio = [];
+        }
+
+        $expired_message = '';
+        if ( isset( $expiration['enabled'] ) && filter_var( $expiration['enabled'], FILTER_VALIDATE_BOOLEAN ) ) {
+            $expires_at = isset( $expiration['expires_at'] ) ? strtotime( $expiration['expires_at'] ) : 0;
+            if ( $expires_at && time() > $expires_at ) {
+                $expired_message = __( 'This immersive experience is no longer available because the sharing link has expired.', 'phantomviews' );
+            }
+        }
+
+        if ( $expired_message ) {
+            return '<div class="phantomviews-tour-expired">' . esc_html( $expired_message ) . '</div>';
+        }
+
+        $tour_payload = [
+            'scenes'      => $scenes,
+            'branding'    => $branding,
+            'theme'       => $theme,
+            'expiration'  => $expiration,
+            'floorPlans'  => $floor_plans,
+            'audioTracks' => $audio,
+        ];
+
+        ob_start();
+        ?>
+        <div class="phantomviews-tour" data-tour-id="<?php echo esc_attr( $tour_id ); ?>" data-license-state="<?php echo esc_attr( $license_state ); ?>" style="width: <?php echo esc_attr( $atts['width'] ); ?>; height: <?php echo esc_attr( $atts['height'] ); ?>;">
+            <div class="phantomviews-viewer" aria-live="polite"></div>
+            <noscript><?php esc_html_e( 'PhantomViews requires JavaScript to display the tour.', 'phantomviews' ); ?></noscript>
+        </div>
+        <script type="application/json" class="phantomviews-data" data-tour-id="<?php echo esc_attr( $tour_id ); ?>"><?php echo wp_json_encode( $tour_payload ); ?></script>
+        <?php
+
+        return ob_get_clean();
 }
 
 /**
