@@ -90,8 +90,23 @@ if ( ! $tour_id || 'pv_tour' !== get_post_type( $tour_id ) ) {
 return new WP_REST_Response( [ 'message' => __( 'Invalid tour ID.', 'phantomviews' ) ], 400 );
 }
 
-$scenes = $request->get_param( 'scenes' );
-$scenes = is_array( $scenes ) ? recursive_sanitize( $scenes ) : [];
+        $scenes = $request->get_param( 'scenes' );
+        $scenes = is_array( $scenes ) ? recursive_sanitize( $scenes ) : [];
+
+        $branding = $request->get_param( 'branding' );
+        $branding = is_array( $branding ) ? recursive_sanitize( $branding ) : [];
+
+        $theme = $request->get_param( 'theme' );
+        $theme = is_array( $theme ) ? recursive_sanitize( $theme ) : [];
+
+        $expiration = $request->get_param( 'expiration' );
+        $expiration = is_array( $expiration ) ? recursive_sanitize( $expiration ) : [];
+
+        $floor_plans = $request->get_param( 'floorPlans' );
+        $floor_plans = is_array( $floor_plans ) ? recursive_sanitize( $floor_plans ) : [];
+
+        $audio_tracks = $request->get_param( 'audioTracks' );
+        $audio_tracks = is_array( $audio_tracks ) ? recursive_sanitize( $audio_tracks ) : [];
 
 $license_manager = License_Manager::instance();
 if ( ! $license_manager->has_pro_access() ) {
@@ -101,9 +116,14 @@ return new WP_REST_Response( [ 'message' => __( 'The selected plan allows fewer 
 }
 }
 
-update_post_meta( $tour_id, '_phantomviews_scenes', $scenes );
+        update_post_meta( $tour_id, '_phantomviews_scenes', $scenes );
+        update_post_meta( $tour_id, '_phantomviews_branding', $branding );
+        update_post_meta( $tour_id, '_phantomviews_theme', $theme );
+        update_post_meta( $tour_id, '_phantomviews_expiration', $expiration );
+        update_post_meta( $tour_id, '_phantomviews_floor_plans', $floor_plans );
+        update_post_meta( $tour_id, '_phantomviews_audio_tracks', $audio_tracks );
 
-return new WP_REST_Response( [ 'message' => __( 'Tour scenes saved successfully.', 'phantomviews' ) ], 200 );
+        return new WP_REST_Response( [ 'message' => __( 'Tour updated successfully.', 'phantomviews' ) ], 200 );
 }
 
 /**
