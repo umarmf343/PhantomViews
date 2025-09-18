@@ -61,3 +61,28 @@ margin-top: 1.25rem;
 .phantomviews-scene-actions button {
 flex: 1;
 }
+
+.phantomviews-license-checkout .components-panel__body {
+background: #0f172a;
+color: #f8fafc;
+border-radius: 12px;
+padding: 1.5rem;
+}
+
+.phantomviews-license-checkout .components-notice {
+margin: 0 0 1rem;
+}
+
+.phantomviews-license-checkout .components-text-control,
+.phantomviews-license-checkout .components-select-control {
+margin-bottom: 1rem;
+}
+
+.phantomviews-checkout-actions .components-button {
+flex: 1;
+}
+
+.phantomviews-plan-summary {
+font-weight: 600;
+margin-bottom: 1rem;
+}

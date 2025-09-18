@@ -7,8 +7,8 @@
 
 namespace PhantomViews;
 
+use PhantomViews\Licensing\License_Manager;
 use function apply_filters;
-use function get_option;
 use function sanitize_text_field;
 use function wp_unslash;
 
@@ -41,5 +41,7 @@ return $value;
  * @return bool
  */
 function has_pro_license() {
-return apply_filters( 'phantomviews_has_pro_license', (bool) get_option( 'phantomviews_license_valid', false ) );
+$manager = License_Manager::instance();
+
+return apply_filters( 'phantomviews_has_pro_license', $manager->has_pro_access() );
 }

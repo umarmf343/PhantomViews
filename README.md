@@ -7,8 +7,8 @@ PhantomViews is a WordPress plugin crafted for real estate marketers who want to
 - **360° Tour Builder** – Upload panoramas, structure multi-scene tours, and preview them directly in WordPress.
 - **Manual Hotspots** – Create scene transitions, tooltips, media embeds, and external links with precise positional control.
 - **Responsive Frontend Viewer** – A Panolens.js/Three.js powered viewer renders tours beautifully on desktop and mobile.
-- **Licensing & Subscriptions** – Free vs. Pro feature gating with license activation, admin notices, and webhook-ready payment flows.
-- **Paystack & Flutterwave Hooks** – Ready-to-extend payment layer that generates checkout URLs and issues licenses from gateway callbacks.
+- **Licensing & Subscriptions** – Free vs. Pro feature gating with license activation, admin notices, and automated expiry management.
+- **Paystack & Flutterwave Billing** – Secure checkout creation, webhook validation, and automatic license issuance straight from both gateways.
 - **Shortcode Embedding** – Place `[phantomviews_tour id="123"]` inside posts, pages, or custom layouts.
 
 ## Getting Started
@@ -30,7 +30,7 @@ PhantomViews is a WordPress plugin crafted for real estate marketers who want to
 - Uses the WordPress REST API to persist tour scenes and licensing actions.
 - Hotspot and scene data are stored as structured post meta (`_phantomviews_scenes`).
 - Frontend relies on Panolens.js delivered via CDN. Replace with self-hosted assets if required.
-- Payment webhooks are scaffolded; connect them to real Paystack/Flutterwave events for production use.
+- Production-ready webhook endpoints validate signatures from Paystack and Flutterwave before issuing licenses.
 - The admin React-like interface is powered by WordPress’ `wp.element`, `wp.components`, and `wp.apiFetch` packages.
 
 ## Security & Performance
