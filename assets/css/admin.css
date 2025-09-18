@@ -1,0 +1,63 @@
+.phantomviews-settings {
+max-width: 960px;
+margin: 2rem auto;
+background: #fff;
+padding: 2rem;
+border-radius: 12px;
+box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.phantomviews-settings h1 {
+margin-bottom: 1.5rem;
+}
+
+.phantomviews-license-status {
+display: flex;
+align-items: center;
+gap: 0.75rem;
+padding: 1rem 1.25rem;
+border-radius: 10px;
+background: linear-gradient(135deg, #0f172a, #1e293b);
+color: #fff;
+}
+
+.phantomviews-license-status span.status {
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+.phantomviews-settings .components-notice {
+margin: 1rem 0;
+}
+
+.phantomviews-scene-list {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+gap: 1.5rem;
+margin-top: 1.5rem;
+}
+
+.phantomviews-scene-card {
+background: #f8fafc;
+border-radius: 12px;
+padding: 1rem;
+border: 1px solid rgba(15, 23, 42, 0.08);
+position: relative;
+}
+
+.phantomviews-scene-card h3 {
+margin-top: 0;
+font-size: 1.125rem;
+}
+
+.phantomviews-scene-actions {
+display: flex;
+justify-content: space-between;
+gap: 1rem;
+margin-top: 1.25rem;
+}
+
+.phantomviews-scene-actions button {
+flex: 1;
+}

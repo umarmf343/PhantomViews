@@ -1,0 +1,46 @@
+.phantomviews-tour {
+position: relative;
+overflow: hidden;
+border-radius: 18px;
+box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+background: #000;
+}
+
+.phantomviews-viewer,
+.phantomviews-viewer canvas {
+width: 100% !important;
+height: 100% !important;
+display: block;
+}
+
+.phantomviews-hotspot-tooltip {
+position: absolute;
+background: rgba(15, 23, 42, 0.92);
+color: #fff;
+padding: 0.75rem 1rem;
+border-radius: 12px;
+box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+transform: translate(-50%, -125%);
+max-width: 260px;
+pointer-events: none;
+opacity: 0;
+transition: opacity 0.2s ease;
+}
+
+.phantomviews-hotspot-tooltip.is-visible {
+opacity: 1;
+}
+
+.phantomviews-hotspot-media iframe {
+width: 320px;
+height: 180px;
+border: none;
+border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+.phantomviews-hotspot-media iframe {
+width: 240px;
+height: 135px;
+}
+}
