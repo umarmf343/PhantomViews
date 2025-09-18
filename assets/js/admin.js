@@ -1,106 +1,224 @@
 (function (wp) {
 const { apiFetch, components, element, i18n } = wp;
 const { useState, useEffect } = element;
-const { Button, Card, CardBody, CardHeader, Flex, FlexItem, Notice, Spinner, TextControl, TextareaControl, Panel, PanelBody } = components;
+const { Button, Card, CardBody, CardHeader, Flex, FlexItem, Notice, Spinner, TextControl, TextareaControl, Panel, PanelBody, SelectControl } = components;
 const { __ } = i18n;
 
 function LicensePanel({ licenseState, proEnabled, licenseExpiry, onLicenseUpdate }) {
-const [licenseKey, setLicenseKey] = useState('');
-const [isSaving, setIsSaving] = useState(false);
-const [message, setMessage] = useState(null);
+  const [licenseKey, setLicenseKey] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [plan, setPlan] = useState(PhantomViewsAdmin.license_plan || 'monthly');
+  const [customerEmail, setCustomerEmail] = useState(PhantomViewsAdmin.current_user_email || '');
+  const [checkoutNotice, setCheckoutNotice] = useState(null);
+  const [isLaunchingCheckout, setIsLaunchingCheckout] = useState(false);
 
-const activateLicense = () => {
-setIsSaving(true);
-setMessage(null);
+  const activateLicense = () => {
+    setIsSaving(true);
+    setMessage(null);
 
-apiFetch({
-path: 'phantomviews/v1/license/activate',
-method: 'POST',
-data: { license_key: licenseKey },
-})
-.then((response) => {
-setMessage({ status: 'success', text: response.message });
-onLicenseUpdate(response);
-})
-.catch((error) => {
-setMessage({ status: 'error', text: error.message || __('Activation failed', 'phantomviews') });
-})
-.finally(() => setIsSaving(false));
-};
+    apiFetch({
+      path: 'phantomviews/v1/license/activate',
+      method: 'POST',
+      data: { license_key: licenseKey, plan },
+    })
+      .then((response) => {
+        setMessage({ status: 'success', text: response.message });
+        onLicenseUpdate(response);
+      })
+      .catch((error) => {
+        setMessage({ status: 'error', text: error.message || __('Activation failed', 'phantomviews') });
+      })
+      .finally(() => setIsSaving(false));
+  };
 
-const deactivateLicense = () => {
-setIsSaving(true);
-apiFetch({ path: 'phantomviews/v1/license/deactivate', method: 'POST' })
-.then((response) => {
-setMessage({ status: 'success', text: response.message });
-onLicenseUpdate(response);
-})
-.catch((error) => {
-setMessage({ status: 'error', text: error.message || __('Deactivation failed', 'phantomviews') });
-})
-.finally(() => setIsSaving(false));
-};
+  const deactivateLicense = () => {
+    setIsSaving(true);
+    apiFetch({ path: 'phantomviews/v1/license/deactivate', method: 'POST' })
+      .then((response) => {
+        setMessage({ status: 'success', text: response.message });
+        onLicenseUpdate(response);
+      })
+      .catch((error) => {
+        setMessage({ status: 'error', text: error.message || __('Deactivation failed', 'phantomviews') });
+      })
+      .finally(() => setIsSaving(false));
+  };
 
-return element.createElement(
-Card,
-{ className: 'phantomviews-license-card' },
-element.createElement(CardHeader, null, __('PhantomViews License', 'phantomviews')),
-element.createElement(
-CardBody,
-null,
-element.createElement(
-'div',
-{ className: 'phantomviews-license-status' },
-element.createElement('span', { className: 'status-dot ' + licenseState }),
-element.createElement('span', { className: 'status' }, licenseState),
-proEnabled && licenseExpiry
-? element.createElement('span', null, __('Expires', 'phantomviews') + ': ' + licenseExpiry)
-: null
-),
-message
-? element.createElement(Notice, { status: message.status, isDismissible: true }, message.text)
-: null,
-element.createElement(TextControl, {
-label: __('License Key', 'phantomviews'),
-value: licenseKey,
-onChange: setLicenseKey,
-placeholder: __('Enter your license key', 'phantomviews'),
-disabled: isSaving,
-}),
-element.createElement(
-Flex,
-{ justify: 'flex-start', gap: '10px' },
-element.createElement(
-FlexItem,
-null,
-element.createElement(
-Button,
-{
-variant: 'primary',
-onClick: activateLicense,
-disabled: isSaving || !licenseKey,
-},
-isSaving ? element.createElement(Spinner, null) : __('Activate', 'phantomviews')
-)
-),
-proEnabled
-? element.createElement(
-FlexItem,
-null,
-element.createElement(
-Button,
-{
-variant: 'secondary',
-onClick: deactivateLicense,
-disabled: isSaving,
-},
-__('Deactivate', 'phantomviews')
-)
-)
-: null
-)
-)
-);
+  const formatPlanLabel = (slug, label) => {
+    const pricing = (PhantomViewsAdmin.pricing && PhantomViewsAdmin.pricing[slug]) || '';
+    const currency = PhantomViewsAdmin.currency || '';
+    if (!pricing) {
+      return label;
+    }
+
+    return `${label} – ${currency} ${pricing}`;
+  };
+
+  const planOptions = [
+    { label: formatPlanLabel('monthly', __('Monthly subscription', 'phantomviews')), value: 'monthly' },
+    { label: formatPlanLabel('yearly', __('Annual subscription', 'phantomviews')), value: 'yearly' },
+  ];
+  const selectedPlan = planOptions.find((option) => option.value === plan) || planOptions[0];
+
+  const startCheckout = (gateway) => {
+    if (isLaunchingCheckout) {
+      return;
+    }
+
+    if (!customerEmail) {
+      setCheckoutNotice({ status: 'error', text: PhantomViewsAdmin.i18n.checkoutEmailRequired });
+      return;
+    }
+
+    setIsLaunchingCheckout(true);
+    setCheckoutNotice(null);
+
+    const body = new window.URLSearchParams();
+    body.append('action', 'phantomviews_create_checkout');
+    body.append('gateway', gateway);
+    body.append('plan', plan);
+    body.append('email', customerEmail);
+    body.append('nonce', PhantomViewsAdmin.ajax_nonce);
+
+    window
+      .fetch(PhantomViewsAdmin.ajax_url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+        body: body.toString(),
+      })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.success && result.data && result.data.checkout_url) {
+          window.open(result.data.checkout_url, '_blank', 'noopener');
+          setCheckoutNotice({ status: 'success', text: PhantomViewsAdmin.i18n.checkoutRedirect });
+        } else {
+          setCheckoutNotice({
+            status: 'error',
+            text: (result.data && result.data.message) || result.message || PhantomViewsAdmin.i18n.checkoutFailed,
+          });
+        }
+      })
+      .catch(() => {
+        setCheckoutNotice({ status: 'error', text: PhantomViewsAdmin.i18n.checkoutFailed });
+      })
+      .finally(() => setIsLaunchingCheckout(false));
+  };
+
+  return element.createElement(
+    Card,
+    { className: 'phantomviews-license-card' },
+    element.createElement(CardHeader, null, __('PhantomViews License', 'phantomviews')),
+    element.createElement(
+      CardBody,
+      null,
+      element.createElement(
+        'div',
+        { className: 'phantomviews-license-status' },
+        element.createElement('span', { className: 'status-dot ' + licenseState }),
+        element.createElement('span', { className: 'status' }, licenseState),
+        proEnabled && licenseExpiry
+          ? element.createElement('span', null, __('Expires', 'phantomviews') + ': ' + licenseExpiry)
+          : null
+      ),
+      message
+        ? element.createElement(Notice, { status: message.status, isDismissible: true }, message.text)
+        : null,
+      element.createElement(TextControl, {
+        label: __('License Key', 'phantomviews'),
+        value: licenseKey,
+        onChange: setLicenseKey,
+        placeholder: __('Enter your license key', 'phantomviews'),
+        disabled: isSaving,
+      }),
+      element.createElement(SelectControl, {
+        label: __('Subscription plan', 'phantomviews'),
+        value: plan,
+        options: planOptions,
+        onChange: setPlan,
+        help: __('Choose the billing plan associated with your license.', 'phantomviews'),
+        disabled: isSaving,
+      }),
+      element.createElement(
+        Flex,
+        { justify: 'flex-start', gap: '10px' },
+        element.createElement(
+          FlexItem,
+          null,
+          element.createElement(
+            Button,
+            {
+              variant: 'primary',
+              onClick: activateLicense,
+              disabled: isSaving || !licenseKey,
+            },
+            isSaving ? element.createElement(Spinner, null) : __('Activate', 'phantomviews')
+          )
+        ),
+        proEnabled
+          ? element.createElement(
+              FlexItem,
+              null,
+              element.createElement(
+                Button,
+                {
+                  variant: 'secondary',
+                  onClick: deactivateLicense,
+                  disabled: isSaving,
+                },
+                __('Deactivate', 'phantomviews')
+              )
+            )
+          : null
+      ),
+      element.createElement(
+        Panel,
+        { className: 'phantomviews-license-checkout' },
+        element.createElement(
+          PanelBody,
+          { title: __('Need a license?', 'phantomviews'), initialOpen: true },
+          checkoutNotice
+            ? element.createElement(Notice, { status: checkoutNotice.status }, checkoutNotice.text)
+            : null,
+          element.createElement(TextControl, {
+            label: __('License email', 'phantomviews'),
+            value: customerEmail,
+            onChange: setCustomerEmail,
+            type: 'email',
+            placeholder: __('you@example.com', 'phantomviews'),
+          }),
+          element.createElement(
+            'p',
+            { className: 'phantomviews-plan-summary' },
+            __('Selected plan', 'phantomviews') + ': ' + (selectedPlan ? selectedPlan.label : '')
+          ),
+          element.createElement(
+            Flex,
+            { gap: '10px', justify: 'flex-start', className: 'phantomviews-checkout-actions' },
+            element.createElement(
+              Button,
+              {
+                variant: 'primary',
+                onClick: () => startCheckout('paystack'),
+                disabled: isLaunchingCheckout,
+              },
+              isLaunchingCheckout ? element.createElement(Spinner, null) : __('Pay with Paystack', 'phantomviews')
+            ),
+            element.createElement(
+              Button,
+              {
+                variant: 'secondary',
+                onClick: () => startCheckout('flutterwave'),
+                disabled: isLaunchingCheckout,
+              },
+              isLaunchingCheckout ? element.createElement(Spinner, null) : __('Pay with Flutterwave', 'phantomviews')
+            )
+          )
+        )
+      )
+    )
+  );
 }
 
 function HotspotEditor({ scene, onUpdate }) {

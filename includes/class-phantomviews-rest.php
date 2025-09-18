@@ -11,7 +11,9 @@ use PhantomViews\Licensing\License_Manager;
 use PhantomViews\Traits\Singleton;
 use function __;
 use function add_action;
+use function apply_filters;
 use function current_user_can;
+use function get_option;
 use function get_post_type;
 use function register_rest_route;
 use function sanitize_text_field;
@@ -90,6 +92,15 @@ return new WP_REST_Response( [ 'message' => __( 'Invalid tour ID.', 'phantomview
 
 $scenes = $request->get_param( 'scenes' );
 $scenes = is_array( $scenes ) ? recursive_sanitize( $scenes ) : [];
+
+$license_manager = License_Manager::instance();
+if ( ! $license_manager->has_pro_access() ) {
+$limit = (int) apply_filters( 'phantomviews_free_scene_limit', 3 );
+if ( $limit && count( $scenes ) > $limit ) {
+return new WP_REST_Response( [ 'message' => __( 'The selected plan allows fewer scenes. Please upgrade to add more.', 'phantomviews' ) ], 403 );
+}
+}
+
 update_post_meta( $tour_id, '_phantomviews_scenes', $scenes );
 
 return new WP_REST_Response( [ 'message' => __( 'Tour scenes saved successfully.', 'phantomviews' ) ], 200 );
@@ -99,13 +110,18 @@ return new WP_REST_Response( [ 'message' => __( 'Tour scenes saved successfully.
  * Activate license via REST.
  */
 public function activate_license( WP_REST_Request $request ) {
-$license_key = sanitize_text_field( $request->get_param( 'license_key' ) );
-if ( empty( $license_key ) ) {
-return new WP_REST_Response( [ 'message' => __( 'License key is required.', 'phantomviews' ) ], 400 );
-}
+        $license_key = sanitize_text_field( $request->get_param( 'license_key' ) );
+        if ( empty( $license_key ) ) {
+            return new WP_REST_Response( [ 'message' => __( 'License key is required.', 'phantomviews' ) ], 400 );
+        }
 
-$manager = License_Manager::instance();
-$result  = $manager->activate_license( $license_key );
+        $plan = sanitize_text_field( $request->get_param( 'plan' ) );
+        if ( empty( $plan ) ) {
+            $plan = sanitize_text_field( get_option( 'phantomviews_license_plan', 'monthly' ) );
+        }
+
+        $manager = License_Manager::instance();
+        $result  = $manager->activate_license( $license_key, $plan );
 
 return new WP_REST_Response( $result, $result['success'] ? 200 : 400 );
 }

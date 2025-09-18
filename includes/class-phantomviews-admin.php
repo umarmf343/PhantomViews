@@ -18,6 +18,7 @@ use function get_option;
 use function register_setting;
 use function sanitize_text_field;
 use function settings_fields;
+use function selected;
 use function submit_button;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -50,8 +51,8 @@ private $payment_manager;
  * @param Payment_Gateway_Manager  $payment_manager Payment manager.
  */
 public function __construct( ?License_Manager $license_manager = null, ?Payment_Gateway_Manager $payment_manager = null ) {
-$this->license_manager = $license_manager ?: License_Manager::instance();
-$this->payment_manager = $payment_manager ?: Payment_Gateway_Manager::instance();
+ $this->license_manager = $license_manager ?: License_Manager::instance();
+ $this->payment_manager = $payment_manager ?: new Payment_Gateway_Manager( $this->license_manager );
 
 add_action( 'admin_menu', [ $this, 'register_menu' ] );
 add_action( 'admin_init', [ $this, 'register_settings' ] );
@@ -100,6 +101,7 @@ register_setting( 'phantomviews_settings', 'phantomviews_flutterwave_public_key'
 register_setting( 'phantomviews_settings', 'phantomviews_flutterwave_secret_key', [ $this, 'sanitize_text' ] );
 register_setting( 'phantomviews_settings', 'phantomviews_pro_price_monthly', [ $this, 'sanitize_text' ] );
 register_setting( 'phantomviews_settings', 'phantomviews_pro_price_yearly', [ $this, 'sanitize_text' ] );
+register_setting( 'phantomviews_settings', 'phantomviews_currency', [ $this, 'sanitize_text' ] );
 }
 
 /**
@@ -142,6 +144,27 @@ public function render_settings_page() {
 <tr>
 <th scope="row"><label for="phantomviews_pro_price_yearly"><?php esc_html_e( 'Pro Yearly Price', 'phantomviews' ); ?></label></th>
 <td><input type="text" id="phantomviews_pro_price_yearly" name="phantomviews_pro_price_yearly" value="<?php echo esc_attr( get_option( 'phantomviews_pro_price_yearly', '' ) ); ?>" class="regular-text" /></td>
+</tr>
+<tr>
+<th scope="row"><label for="phantomviews_currency"><?php esc_html_e( 'Billing Currency', 'phantomviews' ); ?></label></th>
+<td>
+<?php $currency = get_option( 'phantomviews_currency', 'NGN' ); ?>
+<select id="phantomviews_currency" name="phantomviews_currency">
+<?php
+$currencies = [
+'NGN' => __( 'Nigerian Naira (₦)', 'phantomviews' ),
+'USD' => __( 'US Dollars ($)', 'phantomviews' ),
+'GHS' => __( 'Ghanaian Cedi (₵)', 'phantomviews' ),
+'KES' => __( 'Kenyan Shilling (KSh)', 'phantomviews' ),
+'ZAR' => __( 'South African Rand (R)', 'phantomviews' ),
+];
+foreach ( $currencies as $code => $label ) :
+?>
+<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $currency, $code ); ?>><?php echo esc_html( $label ); ?></option>
+<?php endforeach; ?>
+</select>
+<p class="description"><?php esc_html_e( 'The selected currency is used when generating Paystack or Flutterwave checkouts.', 'phantomviews' ); ?></p>
+</td>
 </tr>
 </table>
 <?php submit_button(); ?>

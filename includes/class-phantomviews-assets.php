@@ -9,12 +9,15 @@ namespace PhantomViews\Assets;
 
 use PhantomViews\Traits\Singleton;
 use function add_action;
+use function admin_url;
 use function esc_url_raw;
 use function get_option;
 use function rest_url;
+use function sanitize_text_field;
 use function wp_create_nonce;
 use function wp_enqueue_script;
 use function wp_enqueue_style;
+use function wp_get_current_user;
 use function wp_localize_script;
 use function wp_register_script;
 use function wp_register_style;
@@ -109,13 +112,25 @@ wp_localize_script(
 [
 'root'              => esc_url_raw( rest_url( 'phantomviews/v1' ) ),
 'nonce'             => wp_create_nonce( 'wp_rest' ),
+'ajax_url'          => admin_url( 'admin-ajax.php' ),
+'ajax_nonce'        => wp_create_nonce( 'phantomviews_checkout' ),
 'license_state'     => get_option( 'phantomviews_license_state', 'inactive' ),
 'pro_enabled'       => (bool) get_option( 'phantomviews_license_valid', false ),
-'license_expiry'    => get_option( 'phantomviews_license_expires', '' ),
+            'license_expiry'    => get_option( 'phantomviews_license_expires', '' ),
+            'license_plan'      => sanitize_text_field( get_option( 'phantomviews_license_plan', 'monthly' ) ),
+'current_user_email'=> ( $user = wp_get_current_user() ) ? $user->user_email : '',
+'currency'          => get_option( 'phantomviews_currency', 'NGN' ),
+'pricing'           => [
+'monthly' => get_option( 'phantomviews_pro_price_monthly', '' ),
+'yearly'  => get_option( 'phantomviews_pro_price_yearly', '' ),
+],
 'i18n'              => [
 'sceneLimitReached' => __( 'You have reached the maximum number of scenes available on the free plan.', 'phantomviews' ),
 'save'              => __( 'Save Tour', 'phantomviews' ),
 'preview'           => __( 'Preview Tour', 'phantomviews' ),
+'checkoutRedirect'  => __( 'Opening secure checkout in a new tab…', 'phantomviews' ),
+'checkoutFailed'    => __( 'Unable to start checkout. Please verify your billing configuration.', 'phantomviews' ),
+'checkoutEmailRequired' => __( 'Enter an email address to receive your license key.', 'phantomviews' ),
 ],
 ]
 );
